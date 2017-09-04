@@ -1,0 +1,1 @@
+copy  Flash\Obj\TZ3000.hex  Hex\TZ3000.hex
