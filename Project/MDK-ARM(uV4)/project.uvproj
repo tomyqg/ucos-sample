@@ -1415,13 +1415,6 @@
         </Group>
         <Group>
           <GroupName>DSP_Lib</GroupName>
-          <Files>
-            <File>
-              <FileName>arm_cortexM4lf_math.lib</FileName>
-              <FileType>4</FileType>
-              <FilePath>..\..\Libraries\CMSIS\Lib\ARM\arm_cortexM4lf_math.lib</FilePath>
-            </File>
-          </Files>
         </Group>
         <Group>
           <GroupName>uC/CPU</GroupName>
@@ -3109,13 +3102,6 @@
         </Group>
         <Group>
           <GroupName>DSP_Lib</GroupName>
-          <Files>
-            <File>
-              <FileName>arm_cortexM4lf_math.lib</FileName>
-              <FileType>4</FileType>
-              <FilePath>..\..\Libraries\CMSIS\Lib\ARM\arm_cortexM4lf_math.lib</FilePath>
-            </File>
-          </Files>
         </Group>
         <Group>
           <GroupName>uC/CPU</GroupName>
@@ -4803,13 +4789,6 @@
         </Group>
         <Group>
           <GroupName>DSP_Lib</GroupName>
-          <Files>
-            <File>
-              <FileName>arm_cortexM4lf_math.lib</FileName>
-              <FileType>4</FileType>
-              <FilePath>..\..\Libraries\CMSIS\Lib\ARM\arm_cortexM4lf_math.lib</FilePath>
-            </File>
-          </Files>
         </Group>
         <Group>
           <GroupName>uC/CPU</GroupName>
