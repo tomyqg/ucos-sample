@@ -152,11 +152,11 @@ static MDM_CmdTypedef mdm_glb_cmd = { 0, mdm_tx_buffer, 0, 0, NULL, SIM_UNKNOWN,
 static MDM_CmdListCfgTypedef ready_cmd_list;
 
 
-#define SHORT_CMD_COUNTER                 ( ready_cmd_list.shortCmdCounter )
-#define SHORT_CMD_NUMBER                  ( ready_cmd_list.shortCmdNumber )
-#define SHORT_CMD_INDEX( i )              ( ready_cmd_list.ShortCmd[ (i) ].CmdIndex )
-#define SHORT_CMD( i )                    ( ready_cmd_list.ShortCmd[ (i) ].At )
-#define SHORT_CMD_ID( i )                 ( ready_cmd_list.ShortCmd[ (i) ].At.cmd_id )
+#define SHORT_CMD_COUNTER                 ( ready_cmd_list.shortCmdCounter )	//-待发送命令个数
+#define SHORT_CMD_NUMBER                  ( ready_cmd_list.shortCmdNumber )		//-命令序列号,起标记作用
+#define SHORT_CMD_INDEX( i )              ( ready_cmd_list.ShortCmd[ (i) ].CmdIndex )	//-当前成员序列号
+#define SHORT_CMD( i )                    ( ready_cmd_list.ShortCmd[ (i) ].At )				//-当前命令的完整信息
+#define SHORT_CMD_ID( i )                 ( ready_cmd_list.ShortCmd[ (i) ].At.cmd_id )	//-下面通过宏直接指向特定内容
 #define SHORT_CMD_STATE( i )              ( ready_cmd_list.ShortCmd[ (i) ].At.required_state )
 #define SHORT_CMD_AT_BUFFER( i )          ( ready_cmd_list.ShortCmd[ (i) ].At.AtBuffer )
 
@@ -409,9 +409,9 @@ extern void MDM_IfInit ( MDM_DevTypedef *MODEM )
 
     modem = MODEM;
     mdmWorker.data = NULL;
-    mdmWorker.func = MDM_WorkerExecTask;
+    mdmWorker.func = MDM_WorkerExecTask;	//-被写入工作队列一次,就运行一次
 
-    MDM_ClearGlobalAtCmd ();
+    MDM_ClearGlobalAtCmd ();	//-当前AT指令
     MDM_ClearAtCmdList ();
     MDM_ClearGlobalAtRsp ();
 
@@ -439,7 +439,7 @@ extern void MDM_IfInit ( MDM_DevTypedef *MODEM )
  * 返回值  : 无
  * 
  */
-static void MDM_ClearAtCmdList ( void )
+static void MDM_ClearAtCmdList ( void )	//-AT指令列表
 {
   u32 i = 0;
 
@@ -540,7 +540,7 @@ static void MDM_ClearGlobalAtCmd ( void )
  * 返回值  : 无
  * 
  */
-static void MDM_ClearGlobalAtRsp ( void )
+static void MDM_ClearGlobalAtRsp ( void )	//-清空当前AT响应
 {
 
 #if MDM_INFO_DEBUG == 1 && MDM_INIT_DEBUG == 1
@@ -670,7 +670,7 @@ static void MDM_RetryCurrentCommand ( void )
  * 返回值  : 无
  * 
  */
-static void MDM_WorkerExecTask ( void* data )
+static void MDM_WorkerExecTask ( void* data )	//-实现AT指令的发送
 {
   if ( modem->status < MDM_IS_BUSY && modem->status >= MDM_SERIAL_INIT )
   {
@@ -680,7 +680,7 @@ static void MDM_WorkerExecTask ( void* data )
     u16 tempCmdLoc = 0;
 
     /* BUG #003 修正0号索引不能发射的错误!! */
-    if ( SHORT_CMD_COUNTER > 0 )
+    if ( SHORT_CMD_COUNTER > 0 )	//-大于0说明有数据待发送
     {
       for ( ( i = 0, sendCmdIndex = 0 ); i < MDM_SCMD_LIST_LENGTH; i++ )
       {
@@ -740,7 +740,7 @@ static void MDM_WorkerExecTask ( void* data )
           u32 length = strlen ( ( const char* )mdm_glb_cmd.AtBuffer );
 
           if ( length > 0 && modem->serial->write_data ( AT_Flow_Type, mdm_glb_cmd.AtBuffer, length ) == TRUE )
-          {
+          {//-上面完成了向串口写数据
             /* NEW #001 增加切换监视 */
             if ( SHORT_CMD_ID( tempCmdLoc ) == ESCAPE_COMMAND 
               || SHORT_CMD_ID( tempCmdLoc ) == RETURN_TO_DATA_STATE )
@@ -750,7 +750,7 @@ static void MDM_WorkerExecTask ( void* data )
             }
 
 
-            SHORT_CMD_INDEX ( tempCmdLoc ) = 0;
+            SHORT_CMD_INDEX ( tempCmdLoc ) = 0;	//-发送完成了清0
             MDM_CmdSet ( ( MDM_CmdTypedef * )&SHORT_CMD ( tempCmdLoc ) );
             if ( SHORT_CMD_COUNTER > 0 )
             {
@@ -763,8 +763,8 @@ static void MDM_WorkerExecTask ( void* data )
 }
 #endif  /* MDM_INFO_DEBUG */
 
-            modem->status = MDM_IS_BUSY;
-            mdm_glb_cmd.write_complete = TRUE;
+            modem->status = MDM_IS_BUSY;	//-说明处于等待应答状态
+            mdm_glb_cmd.write_complete = TRUE;	//-说明发送完成了
             MDM_WaitForCmdRsp ( mdm_glb_cmd.timeout ); 
           }
 
@@ -919,7 +919,7 @@ extern bool MDM_PostAtCmdByID ( MDM_CmdTypedef *command, AtCommandID id, const a
     while ( command->cmd_id > 0 )
     {
       if ( command->cmd_id != id )
-      {
+      {//-通过比较ID号找到对应的指令
         command++;
       }
       else
@@ -980,7 +980,7 @@ extern bool MDM_PostAtCmdByID ( MDM_CmdTypedef *command, AtCommandID id, const a
 
           if ( len < MDM_SCMD_BLK_SIZE )
           {
-            ++SHORT_CMD_COUNTER;
+            ++SHORT_CMD_COUNTER;	//-增加了一个待处理命令
 
             /* BUG #000 修正参数拷贝顺序错误!! */
             MDM_CmdCpy ( ( MDM_CmdTypedef * )&SHORT_CMD( i ), command );
@@ -1232,7 +1232,7 @@ extern bool MDM_ReadData ( u16 DataSize, u8 *Data )
   bool result = FALSE;
 
 
-  if ( mdm_glb_cmd.handler )
+  if ( mdm_glb_cmd.handler )	//-指向正在处理的AT指令
   {
    	handler = mdm_glb_cmd.handler;
   }
